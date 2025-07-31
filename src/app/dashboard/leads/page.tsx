@@ -13,7 +13,8 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { FormField, FormLabel, FormMessage } from '@/components/ui/form'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Plus, Search, Filter, Edit, Trash2, Mail, Phone, Globe, MapPin, Users, Star, CheckCircle, XCircle, UserPlus, PhoneCall, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { Pagination } from '@/components/ui/pagination'
+import { Plus, Search, Filter, Edit, Trash2, Mail, Phone, Globe, MapPin, Users, Star, CheckCircle, XCircle, UserPlus, PhoneCall } from 'lucide-react'
 
 interface Lead {
   id: string
@@ -179,10 +180,14 @@ export default function LeadsPage() {
     setPagination(prev => ({ ...prev, page }))
   }
 
-  const goToFirstPage = () => goToPage(1)
-  const goToLastPage = () => goToPage(pagination.pages)
-  const goToPreviousPage = () => goToPage(Math.max(1, pagination.page - 1))
-  const goToNextPage = () => goToPage(Math.min(pagination.pages, pagination.page + 1))
+  // Handle records per page change
+  const handleLimitChange = (newLimit: number) => {
+    setPagination(prev => ({
+      ...prev,
+      limit: newLimit,
+      page: 1 // Reset to first page when changing limit
+    }))
+  }
 
   // Server-side filtering is now handled in the API
   const filteredLeads = leads
@@ -472,96 +477,13 @@ export default function LeadsPage() {
           )}
 
           {/* Pagination */}
-          {!loading && filteredLeads.length > 0 && pagination.pages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>
-                    Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                    {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                    {pagination.total} leads
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {/* First Page */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={goToFirstPage}
-                    disabled={pagination.page === 1}
-                    className="h-8 w-8 p-0"
-                    title="First page"
-                  >
-                    <ChevronsLeft className="h-4 w-4" />
-                  </Button>
-
-                  {/* Previous Page */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={goToPreviousPage}
-                    disabled={pagination.page === 1}
-                    className="h-8 w-8 p-0"
-                    title="Previous page"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-
-                  {/* Page Numbers */}
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-                      let pageNum: number
-                      if (pagination.pages <= 5) {
-                        pageNum = i + 1
-                      } else if (pagination.page <= 3) {
-                        pageNum = i + 1
-                      } else if (pagination.page >= pagination.pages - 2) {
-                        pageNum = pagination.pages - 4 + i
-                      } else {
-                        pageNum = pagination.page - 2 + i
-                      }
-
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={pagination.page === pageNum ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => goToPage(pageNum)}
-                          className="h-8 w-8 p-0"
-                        >
-                          {pageNum}
-                        </Button>
-                      )
-                    })}
-                  </div>
-
-                  {/* Next Page */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={goToNextPage}
-                    disabled={pagination.page === pagination.pages}
-                    className="h-8 w-8 p-0"
-                    title="Next page"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-
-                  {/* Last Page */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={goToLastPage}
-                    disabled={pagination.page === pagination.pages}
-                    className="h-8 w-8 p-0"
-                    title="Last page"
-                  >
-                    <ChevronsRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
+          {!loading && filteredLeads.length > 0 && (
+            <Pagination
+              pagination={pagination}
+              onPageChange={goToPage}
+              onLimitChange={handleLimitChange}
+              itemName="leads"
+            />
           )}
         </CardContent>
       </Card>
